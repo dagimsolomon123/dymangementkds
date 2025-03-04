@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitchen Display System</title>
+  <style>
+    :root {
+      --primary-color: #271919;
+      --secondary-color: #f5f5f7;
+      --accent-color: #3498db;
+      --accent-light: rgba(52, 152, 219, 0.1);
+      --success-color: #28a745;
+      --success-hover: #218838;
+      --success-light: #e6f9e6;
+      --warning-color: #ff9800;
+      --danger-color: #dc3545;
+      --text-color: #333;
+      --text-light: #666;
+      --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      --transition-speed: 0.3s;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    nav {
+      background: linear-gradient(135deg, #271919 0%, #3a2727 100%);
+      color: white;
+      padding: 18px 24px;
+      width: 100%;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav h2 {
+      margin: 0;
+      font-size: 1.6em;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    nav .pending-count {
+      font-size: 0.95em;
+      font-weight: 600;
+      background-color: rgba(255, 255, 255, 0.15);
+      padding: 8px 16px;
+      border-radius: 24px;
+      transition: all var(--transition-speed);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    nav .pending-count::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: var(--warning-color);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 0.6; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.1); }
+      100% { opacity: 0.6; transform: scale(0.9); }
+    }
+    
+    nav .pending-count:hover {
+      transform: translateY(-2px);
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .content {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 20px 24px;
+      width: 100%;
+    }
+
+    h1 {
+      color: var(--primary-color);
+      font-size: 1.6em;
+      margin-bottom: 20px;
+      font-weight: 700;
+      text-align: center;
+      position: relative;
+      padding-bottom: 10px;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 3px;
+      background: var(--accent-color);
+      border-radius: 4px;
+    }
+
+    .orders-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 1200px) {
+      .orders-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .orders-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .order-card {
+      border-radius: 12px;
+      background-color: white;
+      box-shadow: var(--card-shadow);
+      transition: all var(--transition-speed);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .order-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .card-header {
+      padding: 12px 16px;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .table-number {
+      font-size: 1.2em;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+    
+    .waiter-name {
+      font-size: 0.8em;
+      color: var(--text-light);
+      background-color: rgba(0, 0, 0, 0.05);
+      padding: 3px 8px;
+      border-radius: 10px;
+    }
+    
+    .card-body {
+      padding: 12px 16px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card-body > div:first-child {
+      flex-shrink: 0;
+    }
+    
+    .card-body > div:nth-child(2) {
+      flex-grow: 1;
+      min-height: 60px;
+    }
+
+    .countdown-timer {
+      font-weight: bold;
+      font-size: 1.6em;
+      color: var(--accent-color);
+      text-align: center;
+      background: var(--accent-light);
+      padding: 8px 10px;
+      border-radius: 8px;
+      margin-bottom: 5px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .countdown-timer::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 100%;
+      background: linear-gradient(to right, var(--accent-color), var(--warning-color));
+    }
+
+    .countdown-timer strong {
+      display: block;
+      font-size: 0.55em;
+      margin-bottom: 2px;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    
+    .countdown-timer span {
+      display: block;
+      line-height: 1.2;
+    }
+
+    /* Time-based color indicators */
+    .time-warning {
+      color: var(--warning-color);
+    }
+    
+    .time-danger {
+      color: var(--danger-color);
+      animation: pulse-text 1.5s infinite;
+    }
+    
+    @keyframes pulse-text {
+      0% { opacity: 0.8; }
+      50% { opacity: 1; }
+      100% { opacity: 0.8; }
+    }
+
+    .order-items {
+      background-color: #f8f9fa;
+      padding: 10px 12px;
+      border-radius: 8px;
+      line-height: 1.4;
+      font-size: 0.95em;
+      border-left: 3px solid var(--accent-color);
+    }
+    
+    .order-items-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--text-color);
+      font-size: 0.8em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 0.75em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background-color: var(--accent-light);
+      color: var(--accent-color);
+    }
+    
+    .card-footer {
+      padding: 10px 16px;
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .finished-button {
+      background-color: var(--success-color);
+      color: white;
+      border: none;
+      padding: 10px;
+      width: 100%;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95em;
+      font-weight: 600;
+      transition: all var(--transition-speed);
+      box-shadow: 0 3px 6px rgba(40, 167, 69, 0.2);
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .finished-button::before {
+      content: "✓";
+      font-size: 1em;
+    }
+
+    .finished-button:hover {
+      background-color: var(--success-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
+    }
+    
+    .finished-button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      opacity: 0.7;
+    }
+
+    .finished {
+      border-left: 4px solid var(--success-color);
+      background-color: var(--success-light);
+      position: relative;
+    }
+    
+    .finished .status-badge {
+      background-color: rgba(40, 167, 69, 0.1);
+      color: var(--success-color);
+    }
+    
+    .finished .card-header {
+      background-color: rgba(40, 167, 69, 0.05);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .order-card {
+      animation: fadeIn 0.4s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <h2>Kitchen Display System</h2>
+    <div class="pending-count"><span id="pending-count">0</span> Orders Pending</div>
+  </nav>
+  <div class="content">
+    <h1>Active Kitchen Orders</h1>
+    <div class="orders-container"></div>
+  </div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const io = require('socket.io-client');
+    const socket = io('http://192.168.1.9:3000'); // Replace with your server IP
+
+    const fetchData = () => {
+      console.log('Fetching all pending orders');
+      ipcRenderer.send('fetch-orders');
+    };
+
+    const displayOrders = (orders) => {
+      const ordersContainer = document.querySelector('.orders-container');
+      ordersContainer.innerHTML = ''; // Clear previous orders
+
+      orders.forEach(order => {
+        const orderCard = document.createElement('div');
+        orderCard.className = 'order-card';
+
+        const isFinished = order.status.toLowerCase() === 'finished';
+        if (isFinished) {
+          orderCard.classList.add('finished');
+        }
+
+        orderCard.innerHTML = `
+          <div class="card-header">
+            <div class="table-number">Table ${order.tableNumber}</div>
+            <div class="waiter-name">${order.waiterName}</div>
+          </div>
+          <div class="card-body">
+            <div class="countdown-timer">
+              <strong>Time Elapsed</strong>
+              <span id="countdown-${order.tableNumber}">00:00:00</span>
+            </div>
+            <div>
+              <div class="order-items-title">Order Items</div>
+              <div class="order-items">${order.order_items}</div>
+            </div>
+            <div>
+              <span class="status-badge">${order.status}</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            ${isFinished
+                ? `<button class="finished-button" disabled>Completed</button>`
+                : `<button class="finished-button" onclick="markAsFinished(event, '${order.tableNumber}')">Complete Order</button>`
+            }
+          </div>
+        `;
+        ordersContainer.appendChild(orderCard);
+
+        // Start or update the countdown timer
+        startCountdown(order.pending_start_time, order.tableNumber);
+      });
+
+      const pendingOrders = orders.filter(order => order.status.toLowerCase() !== 'finished').length;
+      document.getElementById('pending-count').textContent = pendingOrders;
+    };
+
+    const startCountdown = (startTime, tableNumber) => {
+      const countdownElement = document.getElementById(`countdown-${tableNumber}`);
+
+      const updateCountdown = () => {
+        const now = new Date().getTime();
+        const start = new Date(startTime).getTime();
+
+        if (isNaN(start)) {
+          console.error(`Invalid date format for table ${tableNumber}:`, startTime);
+          return;
+        }
+
+        const elapsed = now - start;
+        const hours = Math.floor(elapsed / (1000 * 60 * 60));
+        const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+        
+        // Format time display
+        countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Add visual indicators based on elapsed time
+        countdownElement.classList.remove('time-warning', 'time-danger');
+        if (elapsed >= 15 * 60 * 1000) { // More than 15 minutes
+          countdownElement.classList.add('time-danger');
+        } else if (elapsed >= 10 * 60 * 1000) { // More than 10 minutes
+          countdownElement.classList.add('time-warning');
+        }
+      };
+
+      // Clear any existing interval to prevent multiple timers for the same element
+      if (countdownElement.dataset.intervalId) {
+        clearInterval(countdownElement.dataset.intervalId);
+      }
+
+      const intervalId = setInterval(updateCountdown, 1000);
+      countdownElement.dataset.intervalId = intervalId;
+      updateCountdown();
+    };
+
+    const markAsFinished = (event, tableNumber) => {
+      console.log(`Order at table ${tableNumber} marked as finished`);
+      ipcRenderer.send('finish-order', tableNumber);
+
+      const orderCard = event.target.closest('.order-card');
+      if (orderCard) {
+        orderCard.classList.add('finished');
+        orderCard.querySelector('.finished-button').disabled = true;
+        orderCard.querySelector('.status-badge').textContent = 'Finished';
+      }
+
+      // We're now handling the socket emission in the main process
+      // No need to emit directly from here
+    };
+
+    ipcRenderer.on('orders-data', (event, orders) => {
+      console.log('Received pending orders:', orders);
+      displayOrders(orders);
+    });
+
+    // Listen for order status updates from the mobile app
+    socket.on('orderStatusUpdated', (data) => {
+      console.log('Order status update received:', data);
+      // Refresh the orders to reflect the updated status
+      fetchData();
+    });
+
+    // Listen for order finished events from the mobile app
+    socket.on('orderFinished', (data) => {
+      console.log('Order finished notification received:', data);
+      // Refresh the orders to reflect the updated status
+      fetchData();
+    });
+
+    fetchData();
+    setInterval(fetchData, 5000);
+  </script>
+</body>
+</html>
